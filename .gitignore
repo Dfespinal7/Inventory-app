@@ -1,0 +1,12 @@
+# Ignorar archivos de entorno
+backend/.env
+
+# Node modules
+node_modules/
+
+# Archivos de logs
+*.log
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
