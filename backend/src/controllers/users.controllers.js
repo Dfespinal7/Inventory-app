@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken'
 dotenv.config()
 export const getAllusers = async (req, res) => {
     try {
-        const result = await pool.query('SELECT id,name, email, role  FROM users')
+        const result = await pool.query('SELECT id,name, email, role,isactivate,numberphone  FROM users')
         const user=result.rows
         res.json(user)
     } catch (e) {
@@ -16,7 +16,7 @@ export const getAllusers = async (req, res) => {
 
 export const register = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body
+        const { name, email, password, role,isactivate,numberphone } = req.body
         if (!email || !password || !name || !role) {
             return res.status(401).json({ message: 'Todos los campos son obligatorios' })
         }
@@ -28,7 +28,7 @@ export const register = async (req, res) => {
             return res.status(400).json({ message: "La contraseña debe ser mayor a 8 caracteres" })
         }
         const hashPassword = await bcrypt.hash(password, 10)
-        const result = await pool.query('INSERT INTO users(name,email,password,role)VALUES($1,$2,$3,$4) RETURNING *', [name, email, hashPassword, role])
+        const result = await pool.query('INSERT INTO users(name,email,password,role,isactivate,numberphone)VALUES($1,$2,$3,$4,$5,$6) RETURNING *', [name, email, hashPassword, role,isactivate,numberphone])
         const user = result.rows[0]
         const token = jwt.sign({ id: user.id, email: user.email }, process.env.TOKEN_SECRET, { expiresIn: '1d' })
         res.cookie('token', token)
@@ -59,6 +59,10 @@ export const login = async (req, res) => {
     const validPassword = await bcrypt.compare(password, user.password)
     if (!validPassword) {
         return res.status(400).json({ message: 'Contraseña incorrecta' })
+    }
+    console.log(user.isactivate)
+    if(!user.isactivate){
+        return res.status(500).json({message:'Usuario desahibilitado temporalmente, comuniquese con el administrador'})
     }
     const token = jwt.sign({ id: user.id, email: user.email }, process.env.TOKEN_SECRET, { expiresIn: '1d' })
     res.cookie('token', token)
