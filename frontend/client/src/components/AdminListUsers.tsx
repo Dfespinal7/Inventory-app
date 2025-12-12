@@ -6,6 +6,8 @@ export default function AdminListUsers() {
   const [allUsers, setAllUsers] = useState<UserProps[]>([]);
   const [filtrados, setFiltrados] = useState<UserProps[]>([]);
   const [buscador, setBuscador] = useState("");
+  const [usersActivate,setUsersActivate]=useState<number>(0)
+  const [usersDesactivate,setUserDesactivate]=useState<number>(0)
 
   const getAllusers = async () => {
     const result = await fetch("http://localhost:5000/users", {
@@ -16,6 +18,24 @@ export default function AdminListUsers() {
     setFiltrados(data);
   };
 
+
+  const handleFilterClick=(e:React.MouseEvent<HTMLDivElement>)=>{
+    const {id}=e.currentTarget
+    if(id==='todos'){
+      setFiltrados(allUsers)
+    }
+    else if(id==='activos'){
+      setFiltrados(allUsers.filter(u=>u.isactivate===true))
+    }else if(id==='desactivados'){
+      setFiltrados(allUsers.filter(u=>u.isactivate!==true))
+    }
+  }
+  const handleActivate=()=>{
+    const activados=allUsers.filter(u=>u.isactivate===true).length
+    setUsersActivate(activados)
+    const desactivados=allUsers.filter(u=>u.isactivate!==true).length
+    setUserDesactivate(desactivados)
+  }
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBuscador(e.target.value);
   };
@@ -29,7 +49,9 @@ export default function AdminListUsers() {
       )
     );
   };
-
+  useEffect(()=>{
+    handleActivate()
+  },[allUsers])
   useEffect(() => {
     getAllusers();
   }, []);
@@ -40,7 +62,6 @@ export default function AdminListUsers() {
 
   return (
     <div className="bg-gray-100 h-[90%] flex flex-col px-5 py-2 gap-2.5">
-      {/* Header */}
       <div className="h-[10%] rounded-lg bg-white shadow-lg flex items-center px-4 justify-between">
         <div>
           <h1 className="font-bold text-2xl">👥 Gestión de Usuarios</h1>
@@ -55,16 +76,16 @@ export default function AdminListUsers() {
 
       
       <div className="h-[18%] flex flex-wrap items-center px-4 gap-2 mb-2">
-        <div className="border size-30 bg-white rounded-lg shadow-lg border-gray-300 flex justify-center items-center flex-col">
+        <div onClick={handleFilterClick} id="todos" className=" cursor-pointer border size-30 bg-white rounded-lg shadow-lg border-gray-300 flex justify-center items-center flex-col">
           <h1 className="font-bold text-xl text-blue-400">{allUsers.length}</h1>
           <span className="font-light text-gray-400">Total</span>
         </div>
-        <div className="border size-30 bg-white rounded-lg shadow-lg border-gray-300 flex justify-center items-center flex-col">
-          <h1 className="font-bold text-xl text-green-400">Por definir</h1>
+        <div onClick={handleFilterClick} id="activos" className="cursor-pointer border size-30 bg-white rounded-lg shadow-lg border-gray-300 flex justify-center items-center flex-col">
+          <h1 className="font-bold text-xl text-green-400">{usersActivate}</h1>
           <span className="font-light text-gray-400">Activos</span>
         </div>
-        <div className="border size-30 bg-white rounded-lg shadow-lg border-gray-300 flex justify-center items-center flex-col">
-          <h1 className="font-bold text-xl text-red-500">Por definir</h1>
+        <div onClick={handleFilterClick} id="desactivados" className="cursor-pointer border size-30 bg-white rounded-lg shadow-lg border-gray-300 flex justify-center items-center flex-col">
+          <h1 className="font-bold text-xl text-red-500">{usersDesactivate}</h1>
           <span className="font-light text-gray-400">Inactivos</span>
         </div>
         <input
@@ -75,7 +96,6 @@ export default function AdminListUsers() {
         />
       </div>
 
-      {/* Tabla */}
       <div className="h-[55%] w-full overflow-auto">
         {filtrados.length === 0 ? (
           <h1 className="text-3xl text-red-300 font-semibold text-center">
