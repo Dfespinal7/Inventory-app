@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { UserProps } from "./AdminProtectedRoute";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
+import { mostrarAlerta } from "../sweetAlert/AlertSweetAlert.ts";
 
 export default function AdminListUsers() {
   const [allUsers, setAllUsers] = useState<UserProps[]>([]);
@@ -69,7 +70,7 @@ export default function AdminListUsers() {
             Administra y gestiona los usuarios del sistema
           </span>
         </div>
-        <button className="bg-sky-300 px-2 py-1 rounded-md text-white font-bold cursor-pointer hover:scale-105 transition-all duration-500">
+        <button onClick={()=>{mostrarAlerta({title:"prueba",text:"prueba",icon:"question",confirmButtonText:"Comfrimar"})}} className="bg-sky-300 px-2 py-1 rounded-md text-white font-bold cursor-pointer hover:scale-105 transition-all duration-500">
           Nuevo Usuario
         </button>
       </div>
