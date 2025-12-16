@@ -5,18 +5,18 @@ import jwt from 'jsonwebtoken'
 dotenv.config()
 export const getAllusers = async (req, res) => {
     try {
-        const result = await pool.query('SELECT id,name, email, role,isactivate,numberphone  FROM users')
-        const user=result.rows
+        const result = await pool.query('SELECT id,name, email, role,isactivate,numberphone  FROM users ORDER BY id ASC')
+        const user = result.rows
         res.json(user)
     } catch (e) {
-        console.log('error',e.message)
-        return res.status(500).json({message:'error al obtener los usuarios'})
+        console.log('error', e.message)
+        return res.status(500).json({ message: 'error al obtener los usuarios' })
     }
 }
 
 export const register = async (req, res) => {
     try {
-        const { name, email, password, role,isactivate,numberphone } = req.body
+        const { name, email, password, role, isactivate, numberphone } = req.body
         if (!email || !password || !name || !role) {
             return res.status(401).json({ message: 'Todos los campos son obligatorios' })
         }
@@ -28,7 +28,7 @@ export const register = async (req, res) => {
             return res.status(400).json({ message: "La contraseña debe ser mayor a 8 caracteres" })
         }
         const hashPassword = await bcrypt.hash(password, 10)
-        const result = await pool.query('INSERT INTO users(name,email,password,role,isactivate,numberphone)VALUES($1,$2,$3,$4,$5,$6) RETURNING *', [name, email, hashPassword, role,isactivate,numberphone])
+        const result = await pool.query('INSERT INTO users(name,email,password,role,isactivate,numberphone)VALUES($1,$2,$3,$4,$5,$6) RETURNING *', [name, email, hashPassword, role, isactivate, numberphone])
         const user = result.rows[0]
         const token = jwt.sign({ id: user.id, email: user.email }, process.env.TOKEN_SECRET, { expiresIn: '1d' })
         res.cookie('token', token)
@@ -61,8 +61,8 @@ export const login = async (req, res) => {
         return res.status(400).json({ message: 'Contraseña incorrecta' })
     }
     console.log(user.isactivate)
-    if(!user.isactivate){
-        return res.status(500).json({message:'Usuario desahibilitado temporalmente, comuniquese con el administrador'})
+    if (!user.isactivate) {
+        return res.status(500).json({ message: 'Usuario desahibilitado temporalmente, comuniquese con el administrador' })
     }
     const token = jwt.sign({ id: user.id, email: user.email }, process.env.TOKEN_SECRET, { expiresIn: '1d' })
     res.cookie('token', token)
@@ -82,4 +82,26 @@ export const profile = async (req, res) => {
     const result = await pool.query('SELECT * FROM users where id=$1', [id])
     const user = result.rows[0]
     res.json({ id: user.id, name: user.name, email: user.email, role: user.role })
+}
+
+export const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params
+        const result = await pool.query('Delete from users where id=$1', [id])
+        res.json({ message: 'Usuario eliminado correctamente' })
+    } catch (e) {
+        res.status(500).json({ message: 'Error al eliminar usuario' })
+        console.log(e.message)
+    }
+}
+export const updateUser = async (req, res) => {
+    try {
+        const { id } = req.params
+        const { name, email, role, isactivate, numberphone } = req.body
+        const result = await pool.query('UPDATE users SET name=$1,email=$2,role=$3,isactivate=$4,numberphone=$5 where id=$6 RETURNING *', [name, email, role, isactivate, numberphone, id])
+        res.json({ message: 'usuario actualizado correctamente', user: result.rows[0] })
+    } catch (e) {
+        res.status(500).json({ message: 'Error al actualizar usuario' })
+        console.log(e.message)
+    }
 }

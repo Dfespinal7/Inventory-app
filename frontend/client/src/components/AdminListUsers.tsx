@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import type { UserProps } from "./AdminProtectedRoute";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { mostrarAlerta } from "../sweetAlert/AlertSweetAlert.ts";
+import Swal from "sweetalert2";
 
+//crear formulario de creacion de usuario, la idea es implementarlo desde un modal de sweet
 export default function AdminListUsers() {
   const [allUsers, setAllUsers] = useState<UserProps[]>([]);
   const [filtrados, setFiltrados] = useState<UserProps[]>([]);
@@ -18,6 +20,35 @@ export default function AdminListUsers() {
     setAllUsers(data);
     setFiltrados(data);
   };
+
+  const openFormModal = () => {
+  Swal.fire({
+    title: 'Editar usuario',
+    html: `
+      <input id="swal-name" class="swal2-input" placeholder="Nombre">
+      <input id="swal-email" class="swal2-input" placeholder="Email">
+    `,
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonText: 'Guardar',
+    cancelButtonText: 'Cancelar',
+    preConfirm: () => {
+      const name = document.getElementById('swal-name').value
+      const email = document.getElementById('swal-email').value
+
+      if (!name || !email) {
+        Swal.showValidationMessage('Todos los campos son obligatorios')
+        return false
+      }
+
+      return { name, email }
+    }
+  }).then(result => {
+    if (result.isConfirmed) {
+      console.log(result.value) // { name, email }
+    }
+  })
+}
 
 
   const handleFilterClick=(e:React.MouseEvent<HTMLDivElement>)=>{
@@ -41,6 +72,22 @@ export default function AdminListUsers() {
     setBuscador(e.target.value);
   };
 
+  const buttonHandleUserActivate=async(id:number)=>{
+    const user=allUsers.find(u=>u.id===id)
+    const editUser={...user,isactivate:!user?.isactivate}
+    const result=await fetch(`http://localhost:5000/user/${id}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      credentials:'include',
+      body:JSON.stringify(editUser)
+    })
+    const data=await result.json()
+    console.log(data)
+    const validate=allUsers.map(u=>u.id===id?{...u,isactivate:!u.isactivate}:u) //debemos asegurarnos de que el estado de alluser cambie tambien porque ese el pilar de filtrados, recordemos que de alli se desprende el otro
+    setFiltrados(validate)
+    setAllUsers(validate)
+  }
+
   const handleFilters = () => {
     setFiltrados(
       allUsers.filter(
@@ -50,6 +97,32 @@ export default function AdminListUsers() {
       )
     );
   };
+  const deleteUser=async(id:number)=>{
+    
+    const result=await Swal.fire({
+      title:'Advertencia',
+      text:'Esta seguro que desea eliminar este usuario? se borraran todos los datos del usuario',
+      confirmButtonText:'Eliminar',
+      icon:'warning',
+      showCancelButton:true
+    })
+    if(result.isConfirmed){
+      const response=await fetch(`http://localhost:5000/user/${id}`,{
+        method:'DELETE',
+        credentials:'include'
+      })
+      const data=await response.json()
+      setFiltrados(allUsers.filter(u=>u.id!==id))
+      Swal.fire({
+        icon:'success',
+        title:'Todo salió bien',
+        text:data.message,
+        showConfirmButton:false,
+        timer:1500
+      })
+    }
+    
+  }
   useEffect(()=>{
     handleActivate()
   },[allUsers])
@@ -70,7 +143,7 @@ export default function AdminListUsers() {
             Administra y gestiona los usuarios del sistema
           </span>
         </div>
-        <button onClick={()=>{mostrarAlerta({title:"prueba",text:"prueba",icon:"question",confirmButtonText:"Comfrimar"})}} className="bg-sky-300 px-2 py-1 rounded-md text-white font-bold cursor-pointer hover:scale-105 transition-all duration-500">
+        <button onClick={openFormModal} className="bg-sky-300 px-2 py-1 rounded-md text-white font-bold cursor-pointer hover:scale-105 transition-all duration-500">
           Nuevo Usuario
         </button>
       </div>
@@ -126,7 +199,7 @@ export default function AdminListUsers() {
                   <td className="p-1.5 text-center">{u.email}</td>
                   <td className="p-1.5 text-center">
                     {u.role.toLowerCase() === "admin" ? (
-                      <span className="bg-green-200 p-1 rounded-lg font-bold text-green-500 uppercase text-sm">
+                      <span  className="bg-green-200 p-1 rounded-lg font-bold text-green-500 uppercase text-sm">
                         {u.role}
                       </span>
                     ) : (
@@ -138,11 +211,11 @@ export default function AdminListUsers() {
                   <td className="p-1.5 text-center">{u.numberphone}</td>
                   <td className="p-1.5 text-center">
                     {u.isactivate ? (
-                      <span className="bg-green-200 p-1 rounded-lg font-bold text-green-500">
+                      <span onClick={()=>buttonHandleUserActivate(u.id)} className="bg-green-200 p-1 rounded-lg font-bold text-green-500">
                         Activo
                       </span>
                     ) : (
-                      <span className="bg-red-200 p-1 rounded-lg font-bold text-red-500">
+                      <span onClick={()=>buttonHandleUserActivate(u.id)} className="bg-red-200 p-1 rounded-lg font-bold text-red-500">
                         No activo
                       </span>
                     )}
@@ -151,7 +224,7 @@ export default function AdminListUsers() {
                     <button className="bg-sky-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer">
                       <PencilIcon className="h-5 w-5" />
                     </button>
-                    <button className="bg-red-500 p-1 rounded-lg hover:scale-105 transition-all duration-200 cursor-pointer">
+                    <button onClick={()=>{deleteUser(u.id)}} className="bg-red-500 p-1 rounded-lg hover:scale-105 transition-all duration-200 cursor-pointer">
                       <TrashIcon className="h-5 w-5" />
                     </button>
                   </td>
