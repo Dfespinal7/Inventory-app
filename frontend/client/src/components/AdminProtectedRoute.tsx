@@ -8,7 +8,7 @@ export type  UserProps={
     name:string
     email:string
     role:string
-    isactivate?:boolean
+    isactivate?:boolean|undefined
     numberphone?:string
 }
 export default function AdminProtectedRoute({children}:AdminProps) {

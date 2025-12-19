@@ -1,16 +1,21 @@
 import { useEffect, useState } from "react";
 import type { UserProps } from "./AdminProtectedRoute";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
-import { mostrarAlerta } from "../sweetAlert/AlertSweetAlert.ts";
 import Swal from "sweetalert2";
 
-//crear formulario de creacion de usuario, la idea es implementarlo desde un modal de sweet
+type UserCompletedProps = Omit<UserProps, 'id'> & {
+  password: string
+  isactivate: boolean | undefined
+}
+
+//hacer peticion al backend para guardar usuario y actualizar la lista en backend
 export default function AdminListUsers() {
   const [allUsers, setAllUsers] = useState<UserProps[]>([]);
   const [filtrados, setFiltrados] = useState<UserProps[]>([]);
   const [buscador, setBuscador] = useState("");
-  const [usersActivate,setUsersActivate]=useState<number>(0)
-  const [usersDesactivate,setUserDesactivate]=useState<number>(0)
+  const [usersActivate, setUsersActivate] = useState<number>(0)
+  const [usersDesactivate, setUserDesactivate] = useState<number>(0)
+  const [newUser, setNewUser] = useState<UserCompletedProps>()
 
   const getAllusers = async () => {
     const result = await fetch("http://localhost:5000/users", {
@@ -21,69 +26,96 @@ export default function AdminListUsers() {
     setFiltrados(data);
   };
 
-  const openFormModal = () => {
-  Swal.fire({
-    title: 'Editar usuario',
-    html: `
-      <input id="swal-name" class="swal2-input" placeholder="Nombre">
-      <input id="swal-email" class="swal2-input" placeholder="Email">
-    `,
-    focusConfirm: false,
-    showCancelButton: true,
-    confirmButtonText: 'Guardar',
-    cancelButtonText: 'Cancelar',
-    preConfirm: () => {
-      const name = document.getElementById('swal-name').value
-      const email = document.getElementById('swal-email').value
-
-      if (!name || !email) {
-        Swal.showValidationMessage('Todos los campos son obligatorios')
-        return false
+  const formCreateUser = () => {
+    Swal.fire({
+      title: 'Añadir usuario',
+      showCancelButton: true,
+      cancelButtonText: 'Cancelar',
+      confirmButtonText: 'Guardar',
+      html: `
+      <div class="flex flex-col justify-center items-center gap-4">
+        <div class="">
+          <input placeholder="Ingrese nombre" class="swal2-input" id="name">
+          <input placeholder="Ingrese email" class="swal2-input" id="email">
+          <input placeholder="Ingrese password" class="swal2-input" id="password">
+          <input placeholder="Ingrese teléfono" class="swal2-input" id="telefono">
+        </div>
+        <div class=" w-70 flex justify-between px-1">
+          <label class="text-gray-400">Rol del usuario</label>
+          <select class="border p-1 border-gray-200 rounded-lg text-gray-400" id="rol">
+            <option value="">Seleccionar</option>
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
+          </select>
+        </div>
+        <div class="  w-70 flex justify-between px-1">
+          <label class="text-gray-400">Activo</label>
+          <input type="checkbox"  checked="true" class="size-7 rounded-lg cursor-pointer" id="estado">
+        </div>
+      </div>
+      `,
+      preConfirm: () => {
+        const nameInput = document.getElementById('name') as HTMLInputElement | null
+        const emailInput = document.getElementById('email') as HTMLInputElement | null
+        const passwordInput = document.getElementById('password') as HTMLInputElement | null
+        const telefonoInput = document.getElementById('telefono') as HTMLInputElement | null
+        const rolInput = document.getElementById('rol') as HTMLInputElement | null
+        const estadoInput = document.getElementById('estado') as HTMLInputElement | null
+        const name = nameInput?.value.trim()
+        const email = emailInput?.value.trim()
+        const password = passwordInput?.value.trim()
+        const numberphone = telefonoInput?.value.trim()
+        const isactivate = estadoInput?.checked
+        const role = rolInput?.value.trim()
+        if (!name || !email || !password || !role) {
+          Swal.showValidationMessage('Debe ingresar todos los campos')
+          return false
+        }
+        setNewUser({ name, email, password, numberphone, isactivate, role })
+        return newUser
       }
-
-      return { name, email }
-    }
-  }).then(result => {
-    if (result.isConfirmed) {
-      console.log(result.value) // { name, email }
-    }
-  })
-}
+    }).then(result => {
+      if (result.isConfirmed) {
+        console.log(newUser)
+      }
+    })
+  }
 
 
-  const handleFilterClick=(e:React.MouseEvent<HTMLDivElement>)=>{
-    const {id}=e.currentTarget
-    if(id==='todos'){
+
+  const handleFilterClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const { id } = e.currentTarget
+    if (id === 'todos') {
       setFiltrados(allUsers)
     }
-    else if(id==='activos'){
-      setFiltrados(allUsers.filter(u=>u.isactivate===true))
-    }else if(id==='desactivados'){
-      setFiltrados(allUsers.filter(u=>u.isactivate!==true))
+    else if (id === 'activos') {
+      setFiltrados(allUsers.filter(u => u.isactivate === true))
+    } else if (id === 'desactivados') {
+      setFiltrados(allUsers.filter(u => u.isactivate !== true))
     }
   }
-  const handleActivate=()=>{
-    const activados=allUsers.filter(u=>u.isactivate===true).length
+  const handleActivate = () => {
+    const activados = allUsers.filter(u => u.isactivate === true).length
     setUsersActivate(activados)
-    const desactivados=allUsers.filter(u=>u.isactivate!==true).length
+    const desactivados = allUsers.filter(u => u.isactivate !== true).length
     setUserDesactivate(desactivados)
   }
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBuscador(e.target.value);
   };
 
-  const buttonHandleUserActivate=async(id:number)=>{
-    const user=allUsers.find(u=>u.id===id)
-    const editUser={...user,isactivate:!user?.isactivate}
-    const result=await fetch(`http://localhost:5000/user/${id}`,{
-      method:'PUT',
-      headers:{'Content-Type':'application/json'},
-      credentials:'include',
-      body:JSON.stringify(editUser)
+  const buttonHandleUserActivate = async (id: number) => {
+    const user = allUsers.find(u => u.id === id)
+    const editUser = { ...user, isactivate: !user?.isactivate }
+    const result = await fetch(`http://localhost:5000/user/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(editUser)
     })
-    const data=await result.json()
+    const data = await result.json()
     console.log(data)
-    const validate=allUsers.map(u=>u.id===id?{...u,isactivate:!u.isactivate}:u) //debemos asegurarnos de que el estado de alluser cambie tambien porque ese el pilar de filtrados, recordemos que de alli se desprende el otro
+    const validate = allUsers.map(u => u.id === id ? { ...u, isactivate: !u.isactivate } : u) //debemos asegurarnos de que el estado de alluser cambie tambien porque ese el pilar de filtrados, recordemos que de alli se desprende el otro
     setFiltrados(validate)
     setAllUsers(validate)
   }
@@ -97,35 +129,35 @@ export default function AdminListUsers() {
       )
     );
   };
-  const deleteUser=async(id:number)=>{
-    
-    const result=await Swal.fire({
-      title:'Advertencia',
-      text:'Esta seguro que desea eliminar este usuario? se borraran todos los datos del usuario',
-      confirmButtonText:'Eliminar',
-      icon:'warning',
-      showCancelButton:true
+  const deleteUser = async (id: number) => {
+
+    const result = await Swal.fire({
+      title: 'Advertencia',
+      text: 'Esta seguro que desea eliminar este usuario? se borraran todos los datos del usuario',
+      confirmButtonText: 'Eliminar',
+      icon: 'warning',
+      showCancelButton: true
     })
-    if(result.isConfirmed){
-      const response=await fetch(`http://localhost:5000/user/${id}`,{
-        method:'DELETE',
-        credentials:'include'
+    if (result.isConfirmed) {
+      const response = await fetch(`http://localhost:5000/user/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
       })
-      const data=await response.json()
-      setFiltrados(allUsers.filter(u=>u.id!==id))
+      const data = await response.json()
+      setFiltrados(allUsers.filter(u => u.id !== id))
       Swal.fire({
-        icon:'success',
-        title:'Todo salió bien',
-        text:data.message,
-        showConfirmButton:false,
-        timer:1500
+        icon: 'success',
+        title: 'Todo salió bien',
+        text: data.message,
+        showConfirmButton: false,
+        timer: 1500
       })
     }
-    
+
   }
-  useEffect(()=>{
+  useEffect(() => {
     handleActivate()
-  },[allUsers])
+  }, [allUsers])
   useEffect(() => {
     getAllusers();
   }, []);
@@ -143,12 +175,12 @@ export default function AdminListUsers() {
             Administra y gestiona los usuarios del sistema
           </span>
         </div>
-        <button onClick={openFormModal} className="bg-sky-300 px-2 py-1 rounded-md text-white font-bold cursor-pointer hover:scale-105 transition-all duration-500">
+        <button onClick={formCreateUser} className="bg-sky-300 px-2 py-1 rounded-md text-white font-bold cursor-pointer hover:scale-105 transition-all duration-500">
           Nuevo Usuario
         </button>
       </div>
 
-      
+
       <div className="h-[18%] flex flex-wrap items-center px-4 gap-2 mb-2">
         <div onClick={handleFilterClick} id="todos" className=" cursor-pointer border size-30 bg-white rounded-lg shadow-lg border-gray-300 flex justify-center items-center flex-col">
           <h1 className="font-bold text-xl text-blue-400">{allUsers.length}</h1>
@@ -199,7 +231,7 @@ export default function AdminListUsers() {
                   <td className="p-1.5 text-center">{u.email}</td>
                   <td className="p-1.5 text-center">
                     {u.role.toLowerCase() === "admin" ? (
-                      <span  className="bg-green-200 p-1 rounded-lg font-bold text-green-500 uppercase text-sm">
+                      <span className="bg-green-200 p-1 rounded-lg font-bold text-green-500 uppercase text-sm">
                         {u.role}
                       </span>
                     ) : (
@@ -211,11 +243,11 @@ export default function AdminListUsers() {
                   <td className="p-1.5 text-center">{u.numberphone}</td>
                   <td className="p-1.5 text-center">
                     {u.isactivate ? (
-                      <span onClick={()=>buttonHandleUserActivate(u.id)} className="bg-green-200 p-1 rounded-lg font-bold text-green-500">
+                      <span onClick={() => buttonHandleUserActivate(u.id)} className="bg-green-200 p-1 rounded-lg font-bold text-green-500">
                         Activo
                       </span>
                     ) : (
-                      <span onClick={()=>buttonHandleUserActivate(u.id)} className="bg-red-200 p-1 rounded-lg font-bold text-red-500">
+                      <span onClick={() => buttonHandleUserActivate(u.id)} className="bg-red-200 p-1 rounded-lg font-bold text-red-500">
                         No activo
                       </span>
                     )}
@@ -224,7 +256,7 @@ export default function AdminListUsers() {
                     <button className="bg-sky-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer">
                       <PencilIcon className="h-5 w-5" />
                     </button>
-                    <button onClick={()=>{deleteUser(u.id)}} className="bg-red-500 p-1 rounded-lg hover:scale-105 transition-all duration-200 cursor-pointer">
+                    <button onClick={() => { deleteUser(u.id) }} className="bg-red-500 p-1 rounded-lg hover:scale-105 transition-all duration-200 cursor-pointer">
                       <TrashIcon className="h-5 w-5" />
                     </button>
                   </td>
