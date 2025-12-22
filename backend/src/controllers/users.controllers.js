@@ -40,7 +40,30 @@ export const register = async (req, res) => {
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 }
+export const createUserByAdmin=async(req,res)=>{
+    try {
+        const { name, email, password, role, isactivate, numberphone } = req.body
+        if (!email || !password || !name || !role) {
+            return res.status(401).json({ message: 'Todos los campos son obligatorios' })
+        }
+        const exist = await pool.query('select * from users where email=$1', [email])
+        if (exist.rows.length > 0) {
+            return res.status(400).json({ message: "El usuario que intenta registrar, ya existe" })
+        }
+        if (password.length < 8) {
+            return res.status(400).json({ message: "La contraseña debe ser mayor a 8 caracteres" })
+        }
+        const hashPassword = await bcrypt.hash(password, 10)
+        const result = await pool.query('INSERT INTO users(name,email,password,role,isactivate,numberphone)VALUES($1,$2,$3,$4,$5,$6) RETURNING *', [name, email, hashPassword, role, isactivate, numberphone])
+        const user = result.rows[0]
 
+        res.json({ message: 'user registrado correctamente', user })
+    }
+    catch (e) {
+        console.error('Error en register:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+}
 export const logout = (req, res) => {
     res.clearCookie('token')
     res.json({ message: "sesión cerrada correctamente" })

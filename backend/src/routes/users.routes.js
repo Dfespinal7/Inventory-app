@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { deleteUser, getAllusers, index, login, logout, profile, register, updateUser } from "../controllers/users.controllers.js";
+import { createUserByAdmin, deleteUser, getAllusers, index, login, logout, profile, register, updateUser } from "../controllers/users.controllers.js";
 import { validateToken } from "../middlewares/validateAuth.js";
 import { validateAdmin } from "../middlewares/validateAdmin.js";
 
@@ -13,3 +13,4 @@ userRoute.get('/',validateToken,validateAdmin,index)
 userRoute.get('/profile',validateToken,profile)
 userRoute.delete('/user/:id',validateToken,validateAdmin,deleteUser)
 userRoute.put('/user/:id',validateToken,validateAdmin,updateUser)
+userRoute.post('/admin/register',validateToken,validateAdmin,createUserByAdmin)

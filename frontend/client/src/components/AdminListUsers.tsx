@@ -8,7 +8,8 @@ type UserCompletedProps = Omit<UserProps, 'id'> & {
   isactivate: boolean | undefined
 }
 
-//hacer peticion al backend para guardar usuario y actualizar la lista en backend
+
+//al crear un nuevo usuario desde el apartado de admin, se crea un nuevo token, por lo cual el que queda logueado es el usuario que se acaba de registrar, lo que no deberia ser asi
 export default function AdminListUsers() {
   const [allUsers, setAllUsers] = useState<UserProps[]>([]);
   const [filtrados, setFiltrados] = useState<UserProps[]>([]);
@@ -71,12 +72,39 @@ export default function AdminListUsers() {
           Swal.showValidationMessage('Debe ingresar todos los campos')
           return false
         }
-        setNewUser({ name, email, password, numberphone, isactivate, role })
-        return newUser
+        const user={ name, email, password, numberphone, isactivate, role }
+        setNewUser(user)
+        return user
       }
-    }).then(result => {
+    }).then(async(result) => {
       if (result.isConfirmed) {
-        console.log(newUser)
+        const userPost=result.value
+        const response=await fetch('http://localhost:5000/admin/register',{
+          method:'POST',
+          credentials:'include',
+          headers:{'Content-type':'application/json'},
+          body:JSON.stringify(userPost)
+        })
+        const data=await response.json()
+        if(response.status!==200){
+          Swal.fire({
+            icon:'error',
+            title:'Error al crear usuario',
+            text:data.message,
+            showConfirmButton:false,
+            timer:2000
+          })
+          return;
+        }
+        setFiltrados([...filtrados,data.user])
+        setAllUsers([...allUsers,data.user])
+        Swal.fire({
+          title:'Todo salió bien',
+          text:data.message,
+          icon:'success',
+          showConfirmButton:false,
+          timer:2000
+        })
       }
     })
   }
