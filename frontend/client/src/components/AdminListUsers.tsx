@@ -9,7 +9,7 @@ type UserCompletedProps = Omit<UserProps, 'id'> & {
 }
 
 
-//al crear un nuevo usuario desde el apartado de admin, se crea un nuevo token, por lo cual el que queda logueado es el usuario que se acaba de registrar, lo que no deberia ser asi
+// continuar e iniciar con el apartado de productos, listar,editar,crear,deliminar
 export default function AdminListUsers() {
   const [allUsers, setAllUsers] = useState<UserProps[]>([]);
   const [filtrados, setFiltrados] = useState<UserProps[]>([]);
@@ -135,19 +135,96 @@ export default function AdminListUsers() {
   const buttonHandleUserActivate = async (id: number) => {
     const user = allUsers.find(u => u.id === id)
     const editUser = { ...user, isactivate: !user?.isactivate }
-    const result = await fetch(`http://localhost:5000/user/${id}`, {
+     await fetch(`http://localhost:5000/user/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(editUser)
     })
-    const data = await result.json()
-    console.log(data)
+    
     const validate = allUsers.map(u => u.id === id ? { ...u, isactivate: !u.isactivate } : u) //debemos asegurarnos de que el estado de alluser cambie tambien porque ese el pilar de filtrados, recordemos que de alli se desprende el otro
     setFiltrados(validate)
     setAllUsers(validate)
   }
 
+  const editUser=(id:number)=>{
+    console.log(id)
+    const userToEdit=allUsers.find(u=>u.id===id)
+    Swal.fire({
+      title:'Editar Usuario',
+      showCancelButton:true,
+      cancelButtonText:'Cancelar',
+      confirmButtonText:'Editar',
+      html:`
+        <div class=" flex flex-col gap-4 items-center py-1">
+          <input placeholder="name" class="border w-70 px-2 py-2 rounded-md border-gray-200" value=${userToEdit?.name} id="name">
+          <input placeholder="name" class="border w-70 px-2 py-2 rounded-md border-gray-200" value=${userToEdit?.email} id="email">
+          <input placeholder="name" class="border w-70 px-2 py-2 rounded-md border-gray-200" value=${userToEdit?.numberphone} id="contacto">
+            <div class=" w-70 flex justify-between px-1">
+            <label class="text-gray-400">Rol del usuario</label>
+            <select class="border p-1 border-gray-200 rounded-lg text-gray-400" id="rol">
+              <option value="">Seleccionar</option>
+              <option value="admin" ${userToEdit?.role.toLowerCase()==='admin'?'selected':''}>Admin</option>
+              <option value="user" ${userToEdit?.role.toLowerCase()==='user'?'selected':''}>User</option>
+            </select>
+          </div>
+          <div class="  w-70 flex justify-between px-1">
+            <label class="text-gray-400">Activo</label>
+            <input type="checkbox" ${userToEdit?.isactivate ? 'checked' : ''}  class="size-7 rounded-lg cursor-pointer" id="estado">
+          </div>
+        </div
+      `,
+      preConfirm:()=>{
+        const newNameInput=document.getElementById('name')as HTMLInputElement||null
+        const newEmailInput=document.getElementById('email')as HTMLInputElement||null
+        const newContactoInput=document.getElementById('contacto')as HTMLInputElement||null
+        const newRoleInput=document.getElementById('rol')as HTMLInputElement||null
+        const newActivoInput=document.getElementById('estado')as HTMLInputElement||null
+        const name=newNameInput.value.trim()
+        const email=newEmailInput.value.trim()
+        const role=newRoleInput.value.trim()
+        const numberphone=newContactoInput.value.trim()
+        const isactivate=newActivoInput.checked
+        const newUserEdit={id:userToEdit?.id,name,email,role,numberphone,isactivate}
+        
+        if (!name || !email || !role) {
+          Swal.showValidationMessage('Debe ingresar todos los campos')
+          return false
+        }
+        return newUserEdit;
+      }
+    }).then(async(result)=>{
+      if(result.isConfirmed){
+        const userNew=result.value
+        const response=await fetch(`http://localhost:5000/user/${userNew.id}`,{
+          method:'PUT',
+          credentials:'include',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify(userNew),
+        })
+        const data=await response.json()
+        if(!response.ok){
+          Swal.fire({
+            title:'Hubo un error',
+            icon:'error',
+            text:data.message,
+            showConfirmButton:true
+          })
+          return;
+        }
+        setAllUsers(allUsers.map(u=>u.id===userNew.id?userNew:u))
+        setFiltrados(filtrados.map(u=>u.id===userNew.id?userNew:u))
+        Swal.fire({
+          title:'Todo salió bien',
+          showConfirmButton:false,
+          text:data.message,
+          icon:'success',
+          timer:2000
+        })
+      }
+    })
+  }
+  
   const handleFilters = () => {
     setFiltrados(
       allUsers.filter(
@@ -281,7 +358,7 @@ export default function AdminListUsers() {
                     )}
                   </td>
                   <td className="p-1.5 text-center flex justify-center gap-2 text-white">
-                    <button className="bg-sky-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer">
+                    <button onClick={()=>editUser(u.id)} className="bg-sky-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer">
                       <PencilIcon className="h-5 w-5" />
                     </button>
                     <button onClick={() => { deleteUser(u.id) }} className="bg-red-500 p-1 rounded-lg hover:scale-105 transition-all duration-200 cursor-pointer">
