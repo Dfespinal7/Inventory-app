@@ -7,8 +7,8 @@ type UserCompletedProps = Omit<UserProps, 'id'> & {
   password: string
   isactivate: boolean | undefined
 }
-
-
+//crear register page
+//crear funcion para editar contraseña desde el admin y recuperar contraseña desde el user
 // continuar e iniciar con el apartado de productos, listar,editar,crear,deliminar
 export default function AdminListUsers() {
   const [allUsers, setAllUsers] = useState<UserProps[]>([]);

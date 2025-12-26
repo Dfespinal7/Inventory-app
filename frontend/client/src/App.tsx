@@ -12,6 +12,7 @@ import ListMovemements from "./components/ListMovemements"
 import ListCategories from "./components/ListCategories"
 import AdminIndex from "./components/AdminIndex"
 import AdminListUsers from "./components/AdminListUsers"
+import RegisterPage from "./pages/RegisterPage"
 
 function App() {
 
@@ -21,6 +22,7 @@ function App() {
       <AuthContext>
         <Routes>
           <Route path="/login" element={<Login></Login>}></Route>
+          <Route path="/register" element={<RegisterPage></RegisterPage>}></Route>
           <Route path="/" element={<ProtectedRoute><h1>Index</h1></ProtectedRoute>}></Route>
           <Route path="/user-login" element={<ProtectedRoute><UserDashboar></UserDashboar></ProtectedRoute>}>
             <Route path="products" element={<ListProducts></ListProducts>}></Route>
