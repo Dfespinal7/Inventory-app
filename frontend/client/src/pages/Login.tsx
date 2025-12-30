@@ -12,7 +12,7 @@ export default function Login() {
         <h1 className='font-bold text-2xl'>Sign in with Email</h1>
         <form action="" onSubmit={handleClickLogin} className=' h-[60%] w-full flex flex-col gap-3'>
           <input onChange={handleInputLogin} name='email' value={userLogin.email} type="text" placeholder='Enter your email' className='w-full px-2 py-1 border border-gray-200 rounded-lg shadow-sm' />
-          <input onChange={handleInputLogin} name='password' value={userLogin.password} type="text" placeholder='Enter your password' className='w-full px-2 py-1 border border-gray-200 rounded-lg shadow-sm' />
+          <input onChange={handleInputLogin} name='password' value={userLogin.password} type="password" placeholder='Enter your password' className='w-full px-2 py-1 border border-gray-200 rounded-lg shadow-sm' />
           <button className='bg-slate-800 font-bold text-white px-2 py-1 rounded-lg cursor-pointer hover:scale-105 transition-all duration-500'>Get started</button>
         </form>
       </div>

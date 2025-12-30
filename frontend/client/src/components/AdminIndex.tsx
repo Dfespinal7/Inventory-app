@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react"
 import { type ProductsProps } from "./ListProducts"
-import {type MovementsProps } from "./ListMovemements"
+import { type MovementsProps } from "./ListMovemements"
 import { Link } from "react-router-dom"
 
 
 export default function AdminIndex() {
-  
+
   const [totalStock, setTotalStock] = useState(0)
-  const [totalUsers,setTotalUsers]=useState(0)
-  const [totalProducts,setTotalProducts]=useState(0)
-  const [totalSalida,setTotalSalida]=useState(0)
-  const [horaLocal,setHoraLocal]=useState<any>()
-  const [allProducts,setAllProducts]=useState<ProductsProps[]>([])
+  const [totalUsers, setTotalUsers] = useState(0)
+  const [totalProducts, setTotalProducts] = useState(0)
+  const [totalSalida, setTotalSalida] = useState(0)
+  const [horaLocal, setHoraLocal] = useState<any>()
+  const [allProducts, setAllProducts] = useState<ProductsProps[]>([])
   const sumStock = async () => {
     const result = await fetch('http://localhost:5000/products')
     const data = await result.json()
@@ -22,30 +22,30 @@ export default function AdminIndex() {
     );
     setTotalStock(suma)
   }
-  const sumtotalUsers=async()=>{
-      const result=await fetch('http://localhost:5000/users')
-      const data=await result.json()
-      setTotalUsers(data.length)
-      console.log(new Date().toLocaleTimeString())
+  const sumtotalUsers = async () => {
+    const result = await fetch('http://localhost:5000/users')
+    const data = await result.json()
+    setTotalUsers(data.length)
+    console.log(new Date().toLocaleTimeString())
   }
-  const sumTotalProducts=async()=>{
-    const result=await fetch('http://localhost:5000/products')
-    const data=await result.json()
+  const sumTotalProducts = async () => {
+    const result = await fetch('http://localhost:5000/products')
+    const data = await result.json()
     setAllProducts(data)
     setTotalProducts(data.length)
   }
-  const sumTotalSalida=async()=>{
-    const result=await fetch('http://localhost:5000/movements')
-    const movements=await result.json()
-    const total=movements.reduce((acc:number,m:MovementsProps)=>{
-      if(m.type.toLowerCase()==='sale'){
-        const product=allProducts.find(p=>p.id===m.product_id)
-        if(product){
-          const unitPrice=parseFloat(product.unit_price)
-          acc+=m.quantity*unitPrice
+  const sumTotalSalida = async () => {
+    const result = await fetch('http://localhost:5000/movements')
+    const movements = await result.json()
+    const total = movements.reduce((acc: number, m: MovementsProps) => {
+      if (m.type.toLowerCase() === 'sale') {
+        const product = allProducts.find(p => p.id === m.product_id)
+        if (product) {
+          const unitPrice = parseFloat(product.unit_price)
+          acc += m.quantity * unitPrice
         }
       } return acc
-    },0)
+    }, 0)
     setTotalSalida(total)
   }
   useEffect(() => {
@@ -53,16 +53,16 @@ export default function AdminIndex() {
     sumtotalUsers()
     sumTotalProducts()
   }, [])
-  useEffect(()=>{
+  useEffect(() => {
     sumTotalSalida()
-  },[allProducts])
-  useEffect(()=>{
+  }, [allProducts])
+  useEffect(() => {
     const interval = setInterval(() => {
-    setHoraLocal(new Date().toLocaleTimeString());
-  }, 1000);
+      setHoraLocal(new Date().toLocaleTimeString());
+    }, 1000);
 
-  return () => clearInterval(interval); 
-  },[])
+    return () => clearInterval(interval);
+  }, [])
   return (
     <div className=" h-[90%] flex flex-col px-2 py-2 gap-2 bg-gray-100">
       <div className=" h-[15%] bg-linear-to-br to-purple-800 via-purple-600 from-purple-700 text-white flex items-center px-5 justify-between rounded-md">
@@ -91,7 +91,7 @@ export default function AdminIndex() {
           <span className="size-10">💳</span>
           <p className="font-bold text-xl">{totalProducts}</p>
           <p className="text-gray-400 font-light">Productos en stock</p>
-          <button className="border w-33 px-2 py-1 rounded-lg bg-red-200 text-white font-bold cursor-pointer hover:scale-105 transition-all duration-500">Ver inventario</button>
+          <button className="border w-33 px-2 py-1 rounded-lg bg-red-200 text-white font-bold cursor-pointer hover:scale-105 transition-all duration-500"><Link to={'/admin-login/products'}>Ver inventario</Link></button>
         </div>
         <div className="bg-white border-l-5 border-yellow-200 shadow-md rounded-xl flex justify-center flex-col px-2">
           <span className="size-10">💳</span>

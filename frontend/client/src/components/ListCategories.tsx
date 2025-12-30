@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-type CategoriesProps={
+export type CategoriesProps={
     id:number
     name:string
     description:string
