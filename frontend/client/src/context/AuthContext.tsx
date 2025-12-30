@@ -8,6 +8,9 @@ type ContextCreatedProps = {
     handleInputLogin: (e: React.ChangeEvent<HTMLInputElement>) => void
     handleClickLogin: (e: React.FormEvent<HTMLFormElement>) => void
     logout: () => void
+    handleSubmitRegister: (e: React.FormEvent<HTMLFormElement>) => void
+    handleInputRegister: (e: React.ChangeEvent<HTMLInputElement>) => void
+    registerUser:RegisterProps
 }
 type ChildrenProps = {
     children: ReactNode
@@ -16,6 +19,12 @@ type ChildrenProps = {
 type LoginProps = {
     email: string
     password: string
+}
+type RegisterProps = LoginProps & {
+    name: string
+    numberphone: string
+    role: "user" | "admin"
+    isactivate: true
 }
 
 const ContextCreated = createContext<ContextCreatedProps | undefined>(undefined)
@@ -29,12 +38,64 @@ export const getContext = () => {
 
 export function AuthContext({ children }: ChildrenProps) {
     const [userLogin, setUserLogin] = useState<LoginProps>({ email: '', password: '' })
+    const [registerUser, setRegisterUser] = useState<RegisterProps>({ name: '', email: '', password: '', role: 'user', isactivate: true, numberphone: '' })
 
     const navigate = useNavigate()
 
+    const handleInputRegister = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target
+        setRegisterUser({ ...registerUser, [name]: value.trim() })
+    }
+    const handleSubmitRegister = async(e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        if(!registerUser.name||!registerUser.email||!registerUser.password||!registerUser.numberphone){
+            Swal.fire({
+                title:'Error',
+                icon:'error',
+                text:'Debe ingresar todos los campos',
+                showConfirmButton:false,
+                timer:1500
+            })
+            
+            return;
+        }
+        const result=await fetch('http://localhost:5000/register',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            credentials:'include',
+            body:JSON.stringify(registerUser)
+        })
+        const data=await result.json()
+        console.log(data)
+        if(result.status!==200){
+            Swal.fire({
+                title:'Hubo un error',
+                icon:'warning',
+                text:data.message,
+                showConfirmButton:false,
+                timer:1500
+            }) 
+            return;
+        }
+        const typeUser=data.user.role
+        const nav=typeUser.toLowerCase()==="admin"?"/admin-login/index" : "/user-login"
+        Swal.fire({
+                title:'Bienvenido!!',
+                icon:'success',
+                text:'Usuario Registrado correctamente',
+                showConfirmButton:false,
+                timer:1500
+            })
+        setTimeout(()=>{
+            setRegisterUser({ name: '', email: '', password: '', role: 'user', isactivate: true, numberphone: '' })
+            navigate(nav)
+        },1500)
+        
+    }
+
     const handleInputLogin = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
-        setUserLogin({ ...userLogin, [name]: value })
+        setUserLogin({ ...userLogin, [name]: value.trim() })
     }
     const handleClickLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -51,7 +112,7 @@ export function AuthContext({ children }: ChildrenProps) {
                 title: "Error!",
                 text: message,
                 icon: 'error',
-                timer:1500,
+                timer: 1500,
                 showConfirmButton: false
             })
             if (data.message === 'Contraseña incorrecta') {
@@ -63,10 +124,10 @@ export function AuthContext({ children }: ChildrenProps) {
         }
         setUserLogin({ email: '', password: '' })
         Swal.fire({
-            title:data.message,
-            icon:"success",
-            timer:1500,
-            showConfirmButton:false
+            title: data.message,
+            icon: "success",
+            timer: 1500,
+            showConfirmButton: false
         })
         const typeUser = data.userLog.role
         const route = typeUser.toLowerCase() === "admin" ? "/admin-login/index" : "/user-login";
@@ -103,7 +164,7 @@ export function AuthContext({ children }: ChildrenProps) {
         }
     }
     return (
-        <ContextCreated.Provider value={{ user: 'Daniel', userLogin, handleInputLogin, handleClickLogin, logout }}>
+        <ContextCreated.Provider value={{ registerUser, user: 'Daniel', userLogin, handleInputLogin, handleClickLogin, logout, handleSubmitRegister, handleInputRegister }}>
             {children}
         </ContextCreated.Provider>
     )

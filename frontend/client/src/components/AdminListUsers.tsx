@@ -7,7 +7,7 @@ type UserCompletedProps = Omit<UserProps, 'id'> & {
   password: string
   isactivate: boolean | undefined
 }
-//crear register page
+
 //crear funcion para editar contraseña desde el admin y recuperar contraseña desde el user
 // continuar e iniciar con el apartado de productos, listar,editar,crear,deliminar
 export default function AdminListUsers() {
@@ -94,6 +94,7 @@ export default function AdminListUsers() {
             showConfirmButton:false,
             timer:2000
           })
+          console.log(newUser)
           return;
         }
         setFiltrados([...filtrados,data.user])
@@ -249,7 +250,8 @@ export default function AdminListUsers() {
         credentials: 'include'
       })
       const data = await response.json()
-      setFiltrados(allUsers.filter(u => u.id !== id))
+      setFiltrados(filtrados.filter(u => u.id !== id))
+      setAllUsers(allUsers.filter(u => u.id !== id))
       Swal.fire({
         icon: 'success',
         title: 'Todo salió bien',
