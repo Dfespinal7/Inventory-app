@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 export type CategoriesProps={
-    id:number
+    id:number|`${string}-${string}-${string}-${string}-${string}`
     name:string
     description:string
 }
@@ -16,6 +16,7 @@ export default function ListCategories() {
         const data=await result.json()
         setAllCategories(data)
     }
+    
     const handleInputChange=(e:React.ChangeEvent<HTMLInputElement>)=>{
         const {value}=e.target
         setBuscador(value)
