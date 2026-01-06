@@ -24,7 +24,8 @@ export const createProduct = async (req, res) => {
             return res.status(400).json({message:'El producto que intenta crear  ya existe'})
         }
         const result = await pool.query('INSERT INTO products(name,description,category_id,stock,unit_price)VALUES($1,$2,$3,$4,$5) RETURNING *', [name.toLowerCase(), description, category_id, stock, unit_price])
-        res.json({ products: result.rows, price: result.rows[0].unit_price })
+        const producto=result.rows[0]
+        res.json({message:'Producto registrado exitosamente',producto})
     } catch (e) {
         console.log('error', e.message)
         return res.status(500).json({ message: 'error al crear producto' })

@@ -121,6 +121,10 @@ export const updateUser = async (req, res) => {
     try {
         const { id } = req.params
         const { name, email, role, isactivate, numberphone } = req.body
+        const exist = await pool.query('select * from users where email=$1', [email])
+        if (exist.rows.length > 0) {
+            return res.status(400).json({ message: "El correo que desea añadir a este usuario ya pertenece a otro usuario" })
+        }
         const result = await pool.query('UPDATE users SET name=$1,email=$2,role=$3,isactivate=$4,numberphone=$5 where id=$6 RETURNING *', [name, email, role, isactivate, numberphone, id])
         res.json({ message: 'usuario actualizado correctamente', user: result.rows[0] })
     } catch (e) {
