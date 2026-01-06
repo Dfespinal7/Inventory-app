@@ -40,7 +40,7 @@ export const register = async (req, res) => {
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 }
-export const createUserByAdmin=async(req,res)=>{
+export const createUserByAdmin = async (req, res) => {
     try {
         const { name, email, password, role, isactivate, numberphone } = req.body
         if (!email || !password || !name || !role) {
@@ -121,10 +121,14 @@ export const updateUser = async (req, res) => {
     try {
         const { id } = req.params
         const { name, email, role, isactivate, numberphone } = req.body
-        const exist = await pool.query('select * from users where email=$1', [email])
-        if (exist.rows.length > 0) {
+        const existEmail = await pool.query('select * from users where email=$1', [email])//buscamos en base de datos si el email existe en la bd
+        const existId = await pool.query('select * from users where id=$1', [id])//buscamos en la base de datos el usuario por id
+        const emailId = existId.rows[0]//guardamos en constante el objeto del usuario buscado por id
+        const emailBody = existEmail.rows[0]//guardamos en constante objeto buscado por email, si no se encontro guarda undefined
+        if (emailBody  && emailId.id !== emailBody.id) {//valida que se cumplan las dos condiciones si email existe y si los correos, son diferentes
             return res.status(400).json({ message: "El correo que desea añadir a este usuario ya pertenece a otro usuario" })
         }
+
         const result = await pool.query('UPDATE users SET name=$1,email=$2,role=$3,isactivate=$4,numberphone=$5 where id=$6 RETURNING *', [name, email, role, isactivate, numberphone, id])
         res.json({ message: 'usuario actualizado correctamente', user: result.rows[0] })
     } catch (e) {

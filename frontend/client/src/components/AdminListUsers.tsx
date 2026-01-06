@@ -309,14 +309,15 @@ export default function AdminListUsers() {
         />
       </div>
 
-      <div className="h-[55%] w-full overflow-auto">
+      
         {filtrados.length === 0 ? (
           <h1 className="text-3xl text-red-300 font-semibold text-center">
             Sin resultados encontrados
           </h1>
         ) : (
+          <div className="h-[55%] w-full overflow-auto">
           <table className="min-w-[800px] w-full md:w-[80%] mx-auto border border-gray-400 table-auto">
-            <thead className="text-white uppercase cursor-pointer">
+            <thead className="text-white uppercase cursor-pointer sticky top-0 z-10">
               <tr>
                 <th className="bg-blue-400 p-2">Foto</th>
                 <th className="bg-blue-400 p-2">Usuario</th>
@@ -371,8 +372,9 @@ export default function AdminListUsers() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
-      </div>
+      
     </div>
   );
 }

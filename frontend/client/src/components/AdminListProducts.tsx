@@ -56,10 +56,16 @@ export default function AdminListProducts() {
                 const name = nameInput.value.trim()
                 const description = descriptionInput.value.trim()
                 const category_id = parseInt(categoriaInput.value)
-                const stock = parseInt(stockInput.value)
+                var stock=undefined
+                if(!stockInput.value){
+                     stock=0
+                }else{
+                     stock=stockInput.value
+                }
                 const unit_price = priceInput.value
 
-                if (!name || !description || !category_id || !stock || !unit_price) {
+                if (!name || !description || !category_id || !unit_price) {
+                    console.log({stock})
                     Swal.showValidationMessage('Debe ingresar todos los campos')
                     return false
                 }
@@ -67,7 +73,7 @@ export default function AdminListProducts() {
                 return productObj
             }
         }).then(async (result) => {
-            
+
             if (result.isConfirmed) {
                 const productToSend = result.value
                 const response = await fetch('http://localhost:5000/products', {
@@ -77,7 +83,7 @@ export default function AdminListProducts() {
                     body: JSON.stringify(productToSend)
                 })
                 const data = await response.json()
-                
+
                 if (!response.ok) {
                     Swal.fire({
                         icon: 'error',
@@ -88,7 +94,7 @@ export default function AdminListProducts() {
                     })
                     return;
                 }
-                
+
                 setFiltrados([...filtrados, data.producto])
                 setAllProducts([...allProducts, data.producto])
                 Swal.fire({
@@ -115,7 +121,7 @@ export default function AdminListProducts() {
                 setFiltrados(allProducts)
             } else if (filtro?.name.toLowerCase() === 'stock bajo') {
 
-                setFiltrados(allProducts.filter(p => p.stock <= 12))
+                setFiltrados(allProducts.filter(p => p.stock <= 12 && p.stock>0))
             }
             else if (filtro?.name.toLowerCase() === 'sin stock') {
 
@@ -183,37 +189,39 @@ export default function AdminListProducts() {
             {
                 filtrados.length === 0 ?
                     <h1 className="font-bold text-2xl text-red-300">No se encontraron resultados</h1> :
-                    <h1><table>
-                        <thead className="uppercase text-white">
-                            <tr>
-                                <th className="bg-blue-400 p-2">Nombre</th>
-                                <th className="bg-blue-400 p-2">DESCRIPCION</th>
-                                <th className="bg-blue-400 p-2">CATEGORIA</th>
-                                <th className="bg-blue-400 p-2">STOCK</th>
-                                <th className="bg-blue-400 p-2">PRECIO POR UNIDAD</th>
-                                <th className="bg-blue-400 p-2">TOTAL</th>
-                                <th className="bg-blue-400 p-2">ACCION</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {
-                                filtrados.map(p => (
-                                    <tr key={p.id} className="border-b border-gray-200 bg-white text-gray-500 cursor-pointer">
-                                        <td className="p-1.5 text-center" >{p.name}</td>
-                                        <td className="p-1.5 text-center text-sm">{p.description}</td>
-                                        <td className="p-1.5 text-center "><span className="w-full bg-sky-200 p-0.5 rounded-lg border text-sky-700 font-semibold uppercase">{allCategorias.find(c => c.id === p.category_id)?.name || 'sin categoria'}</span></td>
-                                        <td className="p-1.5 text-center"><span className={p.stock > 12 ? 'font-bold text-teal-400' : 'font-bold text-red-400'}>{p.stock}</span></td>
-                                        <td className="p-1.5 text-center"><span className="font-bold text-teal-400">${Number(p.unit_price).toLocaleString('es-CL')}</span></td>
-                                        <td className="p-1.5 text-center"><span className="font-bold text-amber-300">${(Number(p.stock) * Number(p.unit_price)).toLocaleString('es-CL')}</span></td>
-                                        <td className="p-1.5 flex gap-1 justify-center items-center">
-                                            <button className="bg-sky-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer text-white"><PencilIcon className="h-5 w-5"></PencilIcon></button>
-                                            <button className="bg-red-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer text-white"><TrashIcon className="h-5 w-5"></TrashIcon></button>
-                                        </td>
-                                    </tr>
-                                ))
-                            }
-                        </tbody>
-                    </table></h1>
+                    <div className=" overflow-auto h-[60%]">
+                        <table>
+                            <thead className="uppercase text-white sticky top-0 z-10">
+                                <tr>
+                                    <th className="bg-blue-400 p-2">Nombre</th>
+                                    <th className="bg-blue-400 p-2">DESCRIPCION</th>
+                                    <th className="bg-blue-400 p-2">CATEGORIA</th>
+                                    <th className="bg-blue-400 p-2">STOCK</th>
+                                    <th className="bg-blue-400 p-2">PRECIO POR UNIDAD</th>
+                                    <th className="bg-blue-400 p-2">TOTAL</th>
+                                    <th className="bg-blue-400 p-2">ACCION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {
+                                    filtrados.map(p => (
+                                        <tr key={p.id} className="border-b border-gray-200 bg-white text-gray-500 cursor-pointer">
+                                            <td className="p-1.5 text-center" >{p.name}</td>
+                                            <td className="p-1.5 text-center text-sm">{p.description}</td>
+                                            <td className="p-1.5 text-center "><span className="w-full bg-sky-200 p-0.5 rounded-lg border text-sky-700 font-semibold uppercase">{allCategorias.find(c => c.id === p.category_id)?.name || 'sin categoria'}</span></td>
+                                            <td className="p-1.5 text-center"><span className={p.stock > 12 ? 'font-bold text-teal-400' : 'font-bold text-red-400'}>{p.stock}</span></td>
+                                            <td className="p-1.5 text-center"><span className="font-bold text-teal-400">${Number(p.unit_price).toLocaleString('es-CL')}</span></td>
+                                            <td className="p-1.5 text-center"><span className="font-bold text-amber-300">${(Number(p.stock) * Number(p.unit_price)).toLocaleString('es-CL')}</span></td>
+                                            <td className="p-1.5 flex gap-1 justify-center items-center">
+                                                <button className="bg-sky-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer text-white"><PencilIcon className="h-5 w-5"></PencilIcon></button>
+                                                <button className="bg-red-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer text-white"><TrashIcon className="h-5 w-5"></TrashIcon></button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                }
+                            </tbody>
+                        </table>
+                    </div>
             }
         </div>
     )
