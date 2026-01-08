@@ -56,16 +56,16 @@ export default function AdminListProducts() {
                 const name = nameInput.value.trim()
                 const description = descriptionInput.value.trim()
                 const category_id = parseInt(categoriaInput.value)
-                var stock=undefined
-                if(!stockInput.value){
-                     stock=0
-                }else{
-                     stock=stockInput.value
+                var stock = undefined
+                if (!stockInput.value) {
+                    stock = 0
+                } else {
+                    stock = stockInput.value
                 }
                 const unit_price = priceInput.value
 
                 if (!name || !description || !category_id || !unit_price) {
-                    console.log({stock})
+                    console.log({ stock })
                     Swal.showValidationMessage('Debe ingresar todos los campos')
                     return false
                 }
@@ -121,7 +121,7 @@ export default function AdminListProducts() {
                 setFiltrados(allProducts)
             } else if (filtro?.name.toLowerCase() === 'stock bajo') {
 
-                setFiltrados(allProducts.filter(p => p.stock <= 12 && p.stock>0))
+                setFiltrados(allProducts.filter(p => p.stock <= 12 && p.stock > 0))
             }
             else if (filtro?.name.toLowerCase() === 'sin stock') {
 
@@ -145,7 +145,70 @@ export default function AdminListProducts() {
     const addCategories = () => {
         setShowCategorias([...allCategorias, { id: crypto.randomUUID(), name: 'sin Stock', description: '' }, { id: crypto.randomUUID(), name: 'todos', description: '' }, { id: crypto.randomUUID(), name: 'stock Bajo', description: '' }])
     }
+    const deleteProduct = async (id: number) => {
 
+        const result = await Swal.fire({
+            title: 'Eliminar Producto',
+            icon: 'question',
+            text: 'Seguro que desea eliminar este producto?',
+            showCancelButton: true,
+            confirmButtonText: 'Eliminar',
+            cancelButtonText: 'Cancelar'
+
+        })
+        if (result.isConfirmed) {
+            const response = await fetch(`http://localhost:5000/product/${id}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            })
+            const data = await response.json()
+            if (!response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Hubo un error',
+                    text: data.message,
+                    showConfirmButton: false,
+                    timer: 2000
+                })
+            }
+            console.log(response)
+            setFiltrados(filtrados.filter(p=>p.id!==id))
+            setAllProducts(allProducts.filter(p=>p.id!==id))
+            Swal.fire({
+                icon: 'success',
+                title: 'Todo salió bien',
+                text: data.message,
+                showConfirmButton: false,
+                timer: 2000
+            })
+        }
+    }
+    const editProduct=(id:number)=>{
+        const productoFound=allProducts.find(p=>p.id===id)
+        const optionHtml=allCategorias.map(c=>`<option value="${c.id}" ${c.id===productoFound?.category_id?"selected":""}>${c.name}</option>`).join(' ')
+        console.log(productoFound?.name)
+        Swal.fire({
+            title:'Editar producto',
+            html:`
+                <div class="flex flex-col justify-center items-center gap-2">
+                    <input value="${productoFound?.name}" class="border px-2 py-1  border-gray-200 rounded-lg text-gray-400 w-[70%]">
+                    <textarea  class="border px-2 py-1  border-gray-200 rounded-lg text-gray-400 w-[70%]">${productoFound?.description}</textarea>
+                    <div class="w-[70%] flex justify-between">
+                        <label class="text-gray-400 ">Seleccione Categoria</label>
+                        <select class="border rounded-lg text-gray-400">
+                            <option>Seleccione</option>
+                            ${optionHtml}
+                        </select>
+                    </div>
+                    <input value="${productoFound?.stock}" class="border px-2 py-1  border-gray-200 rounded-lg text-gray-400 w-[70%]">
+                    <input value="${Number(productoFound?.unit_price).toLocaleString('es-CL')}" class=" w-[70%] border px-2 py-1  border-gray-200 rounded-lg text-gray-400">
+                </div>
+            `,
+            confirmButtonText:'Aceptar',
+            showCancelButton:true,
+            cancelButtonText:'Cancelar'
+        })
+    }
     useEffect(() => {
         handleFilterSearch()
     }, [buscador, allProducts])
@@ -213,8 +276,8 @@ export default function AdminListProducts() {
                                             <td className="p-1.5 text-center"><span className="font-bold text-teal-400">${Number(p.unit_price).toLocaleString('es-CL')}</span></td>
                                             <td className="p-1.5 text-center"><span className="font-bold text-amber-300">${(Number(p.stock) * Number(p.unit_price)).toLocaleString('es-CL')}</span></td>
                                             <td className="p-1.5 flex gap-1 justify-center items-center">
-                                                <button className="bg-sky-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer text-white"><PencilIcon className="h-5 w-5"></PencilIcon></button>
-                                                <button className="bg-red-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer text-white"><TrashIcon className="h-5 w-5"></TrashIcon></button>
+                                                <button onClick={()=>editProduct(p.id)} className="bg-sky-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer text-white"><PencilIcon className="h-5 w-5"></PencilIcon></button>
+                                                <button onClick={() => deleteProduct(p.id)} className="bg-red-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer text-white"><TrashIcon className="h-5 w-5"></TrashIcon></button>
                                             </td>
                                         </tr>
                                     ))
