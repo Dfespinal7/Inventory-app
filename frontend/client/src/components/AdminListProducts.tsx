@@ -4,7 +4,7 @@ import type { CategoriesProps } from "./ListCategories"
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid"
 import Swal from "sweetalert2"
 
-//crear forumlario para añadir productos
+//terminado el apartado de productos, ahora seguimos con la seccion de movimientos
 export default function AdminListProducts() {
     const [allProducts, setAllProducts] = useState<ProductsProps[]>([])
     const [filtrados, setFiltrados] = useState<ProductsProps[]>([])
@@ -172,8 +172,8 @@ export default function AdminListProducts() {
                 })
             }
             console.log(response)
-            setFiltrados(filtrados.filter(p=>p.id!==id))
-            setAllProducts(allProducts.filter(p=>p.id!==id))
+            setFiltrados(filtrados.filter(p => p.id !== id))
+            setAllProducts(allProducts.filter(p => p.id !== id))
             Swal.fire({
                 icon: 'success',
                 title: 'Todo salió bien',
@@ -183,30 +183,85 @@ export default function AdminListProducts() {
             })
         }
     }
-    const editProduct=(id:number)=>{
-        const productoFound=allProducts.find(p=>p.id===id)
-        const optionHtml=allCategorias.map(c=>`<option value="${c.id}" ${c.id===productoFound?.category_id?"selected":""}>${c.name}</option>`).join(' ')
-        console.log(productoFound?.name)
+    const editProduct = (id: number) => {
+        const productoFound = allProducts.find(p => p.id === id)
+        const optionHtml = allCategorias.map(c => `<option value="${c.id}" ${c.id === productoFound?.category_id ? "selected" : ""}>${c.name}</option>`).join(' ')
         Swal.fire({
-            title:'Editar producto',
-            html:`
+            title: 'Editar producto',
+            html: `
                 <div class="flex flex-col justify-center items-center gap-2">
-                    <input value="${productoFound?.name}" class="border px-2 py-1  border-gray-200 rounded-lg text-gray-400 w-[70%]">
-                    <textarea  class="border px-2 py-1  border-gray-200 rounded-lg text-gray-400 w-[70%]">${productoFound?.description}</textarea>
+                    <input value="${productoFound?.name}" class="border px-2 py-1  border-gray-200 rounded-lg text-gray-400 w-[70%] " id="name">
+                    <textarea  class="border px-2 py-1  border-gray-200 rounded-lg text-gray-400 w-[70%]" id="description">${productoFound?.description}</textarea>
                     <div class="w-[70%] flex justify-between">
                         <label class="text-gray-400 ">Seleccione Categoria</label>
-                        <select class="border rounded-lg text-gray-400">
+                        <select class="border rounded-lg text-gray-400" id="category">
                             <option>Seleccione</option>
                             ${optionHtml}
                         </select>
                     </div>
-                    <input value="${productoFound?.stock}" class="border px-2 py-1  border-gray-200 rounded-lg text-gray-400 w-[70%]">
-                    <input value="${Number(productoFound?.unit_price).toLocaleString('es-CL')}" class=" w-[70%] border px-2 py-1  border-gray-200 rounded-lg text-gray-400">
+                    <input value="${productoFound?.stock}" class="border px-2 py-1  border-gray-200 rounded-lg text-gray-400 w-[70%] " id="stock">
+                    <input value="${Number(productoFound?.unit_price).toLocaleString('es-CL')}" id="unit_price" class=" w-[70%] border px-2 py-1  border-gray-200 rounded-lg text-gray-400">
                 </div>
             `,
-            confirmButtonText:'Aceptar',
-            showCancelButton:true,
-            cancelButtonText:'Cancelar'
+            confirmButtonText: 'Aceptar',
+            showCancelButton: true,
+            cancelButtonText: 'Cancelar',
+            preConfirm: () => {
+                const inputNameEdit = document.getElementById('name') as HTMLInputElement || null
+                const inputDescription = document.getElementById('description') as HTMLInputElement || null
+                const inputCategory = document.getElementById('category') as HTMLInputElement || null
+                const inputStock = document.getElementById('stock') as HTMLInputElement || null
+                const inputPrecio = document.getElementById('unit_price') as HTMLInputElement || null
+
+                const name = inputNameEdit.value.trim()
+                const description = inputDescription.value.trim()
+                const category_id = inputCategory.value.trim()
+                let stock = undefined
+                if (!inputStock.value) {
+                    stock = 0
+                } else {
+                    stock = inputStock.value
+                }
+
+                const unit_price = Number(inputPrecio.value.replace(/\./g, ''))
+                if (!name || !description || !category_id || !unit_price) {
+                    Swal.showValidationMessage("Debe ingresar todos los campos")
+                    return false
+                }
+                const productToEdit = { name, description, category_id, stock, unit_price }
+
+                return productToEdit
+            }
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                const productEdited = result.value
+                console.log(productEdited)
+                const response = await fetch(`http://localhost:5000/product/${id}`, {
+                    method: 'PUT',
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(productEdited),
+                    credentials: 'include'
+                })
+
+                const data = await response.json()
+                if (!response.ok) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: "Error",
+                        text: data.message,
+
+                    })
+                }
+                console.log(data)
+                getAllProducts()
+                Swal.fire({
+                    icon: 'success',
+                    title: "Todo salió bien",
+                    text: data.message,
+                    showConfirmButton:false,
+                    timer:2000
+                })
+            }
         })
     }
     useEffect(() => {
@@ -276,7 +331,7 @@ export default function AdminListProducts() {
                                             <td className="p-1.5 text-center"><span className="font-bold text-teal-400">${Number(p.unit_price).toLocaleString('es-CL')}</span></td>
                                             <td className="p-1.5 text-center"><span className="font-bold text-amber-300">${(Number(p.stock) * Number(p.unit_price)).toLocaleString('es-CL')}</span></td>
                                             <td className="p-1.5 flex gap-1 justify-center items-center">
-                                                <button onClick={()=>editProduct(p.id)} className="bg-sky-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer text-white"><PencilIcon className="h-5 w-5"></PencilIcon></button>
+                                                <button onClick={() => editProduct(p.id)} className="bg-sky-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer text-white"><PencilIcon className="h-5 w-5"></PencilIcon></button>
                                                 <button onClick={() => deleteProduct(p.id)} className="bg-red-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer text-white"><TrashIcon className="h-5 w-5"></TrashIcon></button>
                                             </td>
                                         </tr>
