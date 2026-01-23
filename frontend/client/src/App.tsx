@@ -14,6 +14,7 @@ import AdminIndex from "./components/AdminIndex"
 import AdminListUsers from "./components/AdminListUsers"
 import RegisterPage from "./pages/RegisterPage"
 import AdminListProducts from "./components/AdminListProducts"
+import AdminListMovimientos from "./components/AdminListMovimientos"
 
 function App() {
 
@@ -36,6 +37,7 @@ function App() {
               <Route path="index" element={<AdminIndex></AdminIndex>}></Route>
               <Route path="users" element={<AdminListUsers></AdminListUsers>}></Route>
               <Route path="products" element={<AdminListProducts></AdminListProducts>}></Route>
+              <Route path="movements" element={<AdminListMovimientos></AdminListMovimientos>}></Route>
             </Route>
           </Routes>
         </AuthContext>

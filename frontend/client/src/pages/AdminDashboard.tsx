@@ -34,7 +34,7 @@ export default function AdminDashboard() {
             <Link to={'/admin-login/index'}><li className="flex gap-2 font-semibold hover:bg-white/10 cursor-pointer rounded-lg px-2 py-1 hover:scale-105 transition-all duration-500"><span><HomeIcon className='size-5'></HomeIcon></span>Inicio</li></Link>
             <Link to={'/admin-login/users'}><li className="flex gap-2 font-semibold hover:bg-white/10 cursor-pointer rounded-lg px-2 py-1 hover:scale-105 transition-all duration-500"><span><UserIcon className='size-5'></UserIcon></span>Usuarios</li></Link>
             <Link to={'/admin-login/products'}> <li className="flex gap-2 font-semibold hover:bg-white/10 cursor-pointer rounded-lg px-2 py-1 hover:scale-105 transition-all duration-500"><span><CubeIcon className='size-5'></CubeIcon></span>Productos</li></Link>
-            <li className="flex gap-2 font-semibold hover:bg-white/10 cursor-pointer rounded-lg px-2 py-1 hover:scale-105 transition-all duration-500"><span><ArrowsRightLeftIcon className='size-5'></ArrowsRightLeftIcon ></span>Movimientos</li>
+            <Link to={'/admin-login/movements'}><li className="flex gap-2 font-semibold hover:bg-white/10 cursor-pointer rounded-lg px-2 py-1 hover:scale-105 transition-all duration-500"><span><ArrowsRightLeftIcon className='size-5'></ArrowsRightLeftIcon ></span>Movimientos</li></Link>
             <li className="flex gap-2 font-semibold hover:bg-white/10 cursor-pointer rounded-lg px-2 py-1 hover:scale-105 transition-all duration-500"><span><TagIcon className='size-5'></TagIcon ></span>Categorias</li>
             <li></li>
           </ul>
