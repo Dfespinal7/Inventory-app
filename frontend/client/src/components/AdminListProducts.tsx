@@ -258,8 +258,8 @@ export default function AdminListProducts() {
                     icon: 'success',
                     title: "Todo salió bien",
                     text: data.message,
-                    showConfirmButton:false,
-                    timer:2000
+                    showConfirmButton: false,
+                    timer: 2000
                 })
             }
         })
@@ -308,35 +308,71 @@ export default function AdminListProducts() {
                 filtrados.length === 0 ?
                     <h1 className="font-bold text-2xl text-red-300">No se encontraron resultados</h1> :
                     <div className=" overflow-auto h-[60%]">
-                        <table>
-                            <thead className="uppercase text-white sticky top-0 z-10">
+                        <table className="min-w-[900px] w-full text-sm">
+                            <thead className="bg-sky-600 text-white uppercase text-xs sticky top-0 z-10">
                                 <tr>
-                                    <th className="bg-blue-400 p-2">Nombre</th>
-                                    <th className="bg-blue-400 p-2">DESCRIPCION</th>
-                                    <th className="bg-blue-400 p-2">CATEGORIA</th>
-                                    <th className="bg-blue-400 p-2">STOCK</th>
-                                    <th className="bg-blue-400 p-2">PRECIO POR UNIDAD</th>
-                                    <th className="bg-blue-400 p-2">TOTAL</th>
-                                    <th className="bg-blue-400 p-2">ACCION</th>
+                                    <th className="px-4 py-3 text-left">Nombre</th>
+                                    <th className="px-4 py-3 text-left">Descripción</th>
+                                    <th className="px-4 py-3 text-center">Categoría</th>
+                                    <th className="px-4 py-3 text-center">Stock</th>
+                                    <th className="px-4 py-3 text-center">Precio unidad</th>
+                                    <th className="px-4 py-3 text-center">Total</th>
+                                    <th className="px-4 py-3 text-center">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {
-                                    filtrados.map(p => (
-                                        <tr key={p.id} className="border-b border-gray-200 bg-white text-gray-500 cursor-pointer">
-                                            <td className="p-1.5 text-center" >{p.name}</td>
-                                            <td className="p-1.5 text-center text-sm">{p.description}</td>
-                                            <td className="p-1.5 text-center "><span className="w-full bg-sky-200 p-0.5 rounded-lg border text-sky-700 font-semibold uppercase">{allCategorias.find(c => c.id === p.category_id)?.name || 'sin categoria'}</span></td>
-                                            <td className="p-1.5 text-center"><span className={p.stock > 12 ? 'font-bold text-teal-400' : 'font-bold text-red-400'}>{p.stock}</span></td>
-                                            <td className="p-1.5 text-center"><span className="font-bold text-teal-400">${Number(p.unit_price).toLocaleString('es-CL')}</span></td>
-                                            <td className="p-1.5 text-center"><span className="font-bold text-amber-300">${(Number(p.stock) * Number(p.unit_price)).toLocaleString('es-CL')}</span></td>
-                                            <td className="p-1.5 flex gap-1 justify-center items-center">
-                                                <button onClick={() => editProduct(p.id)} className="bg-sky-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer text-white"><PencilIcon className="h-5 w-5"></PencilIcon></button>
-                                                <button onClick={() => deleteProduct(p.id)} className="bg-red-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer text-white"><TrashIcon className="h-5 w-5"></TrashIcon></button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                }
+
+                            <tbody className="divide-y divide-gray-200">
+                                {filtrados.map(p => (
+                                    <tr
+                                        key={p.id}
+                                        className="even:bg-gray-50 hover:bg-sky-50 transition-colors"
+                                    >
+                                        <td className="px-4 py-2 font-semibold text-gray-800">
+                                            {p.name}
+                                        </td>
+
+                                        <td className="px-4 py-2 text-gray-600 text-sm">
+                                            {p.description}
+                                        </td>
+
+                                        <td className="px-4 py-2 text-center">
+                                            <span className="px-3 py-1 rounded-full bg-sky-100 text-sky-700 font-semibold uppercase text-xs">
+                                                {allCategorias.find(c => c.id === p.category_id)?.name || "Sin categoría"}
+                                            </span>
+                                        </td>
+
+                                        <td className="px-4 py-2 text-center font-bold">
+                                            <span className={p.stock > 12 ? "text-teal-600" : "text-red-500"}>
+                                                {p.stock}
+                                            </span>
+                                        </td>
+
+                                        <td className="px-4 py-2 text-center font-bold text-teal-600">
+                                            ${Number(p.unit_price).toLocaleString("es-CL")}
+                                        </td>
+
+                                        <td className="px-4 py-2 text-center font-bold text-amber-500">
+                                            ${(Number(p.stock) * Number(p.unit_price)).toLocaleString("es-CL")}
+                                        </td>
+
+                                        <td className="px-4 py-2">
+                                            <div className="flex justify-center gap-2">
+                                                <button
+                                                    onClick={() => editProduct(p.id)}
+                                                    className="p-2 rounded-lg bg-sky-500 text-white hover:bg-sky-600 transition"
+                                                >
+                                                    <PencilIcon className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => deleteProduct(p.id)}
+                                                    className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+                                                >
+                                                    <TrashIcon className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>

@@ -72,39 +72,39 @@ export default function AdminListUsers() {
           Swal.showValidationMessage('Debe ingresar todos los campos')
           return false
         }
-        const user={ name, email, password, numberphone, isactivate, role }
+        const user = { name, email, password, numberphone, isactivate, role }
         setNewUser(user)
         return user
       }
-    }).then(async(result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        const userPost=result.value
-        const response=await fetch('http://localhost:5000/admin/register',{
-          method:'POST',
-          credentials:'include',
-          headers:{'Content-type':'application/json'},
-          body:JSON.stringify(userPost)
+        const userPost = result.value
+        const response = await fetch('http://localhost:5000/admin/register', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-type': 'application/json' },
+          body: JSON.stringify(userPost)
         })
-        const data=await response.json()
-        if(response.status!==200){
+        const data = await response.json()
+        if (response.status !== 200) {
           Swal.fire({
-            icon:'error',
-            title:'Error al crear usuario',
-            text:data.message,
-            showConfirmButton:false,
-            timer:2000
+            icon: 'error',
+            title: 'Error al crear usuario',
+            text: data.message,
+            showConfirmButton: false,
+            timer: 2000
           })
           console.log(newUser)
           return;
         }
-        setFiltrados([...filtrados,data.user])
-        setAllUsers([...allUsers,data.user])
+        setFiltrados([...filtrados, data.user])
+        setAllUsers([...allUsers, data.user])
         Swal.fire({
-          title:'Todo salió bien',
-          text:data.message,
-          icon:'success',
-          showConfirmButton:false,
-          timer:2000
+          title: 'Todo salió bien',
+          text: data.message,
+          icon: 'success',
+          showConfirmButton: false,
+          timer: 2000
         })
       }
     })
@@ -136,27 +136,27 @@ export default function AdminListUsers() {
   const buttonHandleUserActivate = async (id: number) => {
     const user = allUsers.find(u => u.id === id)
     const editUser = { ...user, isactivate: !user?.isactivate }
-     await fetch(`http://localhost:5000/user/${id}`, {
+    await fetch(`http://localhost:5000/user/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(editUser)
     })
-    
+
     const validate = allUsers.map(u => u.id === id ? { ...u, isactivate: !u.isactivate } : u) //debemos asegurarnos de que el estado de alluser cambie tambien porque ese el pilar de filtrados, recordemos que de alli se desprende el otro
     setFiltrados(validate)
     setAllUsers(validate)
   }
 
-  const editUser=(id:number)=>{
+  const editUser = (id: number) => {
     console.log(id)
-    const userToEdit=allUsers.find(u=>u.id===id)
+    const userToEdit = allUsers.find(u => u.id === id)
     Swal.fire({
-      title:'Editar Usuario',
-      showCancelButton:true,
-      cancelButtonText:'Cancelar',
-      confirmButtonText:'Editar',
-      html:`
+      title: 'Editar Usuario',
+      showCancelButton: true,
+      cancelButtonText: 'Cancelar',
+      confirmButtonText: 'Editar',
+      html: `
         <div class=" flex flex-col gap-4 items-center py-1">
           <input placeholder="name" class="border w-70 px-2 py-2 rounded-md border-gray-200" value=${userToEdit?.name} id="name">
           <input placeholder="name" class="border w-70 px-2 py-2 rounded-md border-gray-200" value=${userToEdit?.email} id="email">
@@ -165,8 +165,8 @@ export default function AdminListUsers() {
             <label class="text-gray-400">Rol del usuario</label>
             <select class="border p-1 border-gray-200 rounded-lg text-gray-400" id="rol">
               <option value="">Seleccionar</option>
-              <option value="admin" ${userToEdit?.role.toLowerCase()==='admin'?'selected':''}>Admin</option>
-              <option value="user" ${userToEdit?.role.toLowerCase()==='user'?'selected':''}>User</option>
+              <option value="admin" ${userToEdit?.role.toLowerCase() === 'admin' ? 'selected' : ''}>Admin</option>
+              <option value="user" ${userToEdit?.role.toLowerCase() === 'user' ? 'selected' : ''}>User</option>
             </select>
           </div>
           <div class="  w-70 flex justify-between px-1">
@@ -175,57 +175,57 @@ export default function AdminListUsers() {
           </div>
         </div
       `,
-      preConfirm:()=>{
-        const newNameInput=document.getElementById('name')as HTMLInputElement||null
-        const newEmailInput=document.getElementById('email')as HTMLInputElement||null
-        const newContactoInput=document.getElementById('contacto')as HTMLInputElement||null
-        const newRoleInput=document.getElementById('rol')as HTMLInputElement||null
-        const newActivoInput=document.getElementById('estado')as HTMLInputElement||null
-        const name=newNameInput.value.trim()
-        const email=newEmailInput.value.trim()
-        const role=newRoleInput.value.trim()
-        const numberphone=newContactoInput.value.trim()
-        const isactivate=newActivoInput.checked
-        const newUserEdit={id:userToEdit?.id,name,email,role,numberphone,isactivate}
-        
+      preConfirm: () => {
+        const newNameInput = document.getElementById('name') as HTMLInputElement || null
+        const newEmailInput = document.getElementById('email') as HTMLInputElement || null
+        const newContactoInput = document.getElementById('contacto') as HTMLInputElement || null
+        const newRoleInput = document.getElementById('rol') as HTMLInputElement || null
+        const newActivoInput = document.getElementById('estado') as HTMLInputElement || null
+        const name = newNameInput.value.trim()
+        const email = newEmailInput.value.trim()
+        const role = newRoleInput.value.trim()
+        const numberphone = newContactoInput.value.trim()
+        const isactivate = newActivoInput.checked
+        const newUserEdit = { id: userToEdit?.id, name, email, role, numberphone, isactivate }
+
         if (!name || !email || !role) {
           Swal.showValidationMessage('Debe ingresar todos los campos')
           return false
         }
         return newUserEdit;
       }
-    }).then(async(result)=>{
-      if(result.isConfirmed){
-        const userNew=result.value
-        const response=await fetch(`http://localhost:5000/user/${userNew.id}`,{
-          method:'PUT',
-          credentials:'include',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify(userNew),
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const userNew = result.value
+        const response = await fetch(`http://localhost:5000/user/${userNew.id}`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userNew),
         })
-        const data=await response.json()
-        if(!response.ok){
+        const data = await response.json()
+        if (!response.ok) {
           Swal.fire({
-            title:'Hubo un error',
-            icon:'error',
-            text:data.message,
-            showConfirmButton:true
+            title: 'Hubo un error',
+            icon: 'error',
+            text: data.message,
+            showConfirmButton: true
           })
           return;
         }
-        setAllUsers(allUsers.map(u=>u.id===userNew.id?userNew:u))
-        setFiltrados(filtrados.map(u=>u.id===userNew.id?userNew:u))
+        setAllUsers(allUsers.map(u => u.id === userNew.id ? userNew : u))
+        setFiltrados(filtrados.map(u => u.id === userNew.id ? userNew : u))
         Swal.fire({
-          title:'Todo salió bien',
-          showConfirmButton:false,
-          text:data.message,
-          icon:'success',
-          timer:2000
+          title: 'Todo salió bien',
+          showConfirmButton: false,
+          text: data.message,
+          icon: 'success',
+          timer: 2000
         })
       }
     })
   }
-  
+
   const handleFilters = () => {
     setFiltrados(
       allUsers.filter(
@@ -309,72 +309,107 @@ export default function AdminListUsers() {
         />
       </div>
 
-      
-        {filtrados.length === 0 ? (
-          <h1 className="text-3xl text-red-300 font-semibold text-center">
-            Sin resultados encontrados
-          </h1>
-        ) : (
-          <div className="h-[55%] w-full overflow-auto">
-          <table className="min-w-[800px] w-full md:w-[80%] mx-auto border border-gray-400 table-auto">
-            <thead className="text-white uppercase cursor-pointer sticky top-0 z-10">
+
+      {filtrados.length === 0 ? (
+        <h1 className="text-3xl text-red-300 font-semibold text-center">
+          Sin resultados encontrados
+        </h1>
+      ) : (
+        <div className="h-[55%] w-full overflow-auto">
+          <table className="min-w-[800px] w-full text-sm">
+            <thead className="bg-sky-600 text-white uppercase text-xs sticky top-0 z-10">
               <tr>
-                <th className="bg-blue-400 p-2">Foto</th>
-                <th className="bg-blue-400 p-2">Usuario</th>
-                <th className="bg-blue-400 p-2">Email</th>
-                <th className="bg-blue-400 p-2">Rol</th>
-                <th className="bg-blue-400 p-2">Contacto</th>
-                <th className="bg-blue-400 p-2">Estado</th>
-                <th className="bg-blue-400 p-2">Acción</th>
+                <th className="px-4 py-3 text-left">Foto</th>
+                <th className="px-4 py-3 text-left">Usuario</th>
+                <th className="px-4 py-3 text-left">Email</th>
+                <th className="px-4 py-3 text-center">Rol</th>
+                <th className="px-4 py-3 text-center">Contacto</th>
+                <th className="px-4 py-3 text-center">Estado</th>
+                <th className="px-4 py-3 text-center">Acciones</th>
               </tr>
             </thead>
-            <tbody>
-              {filtrados.map((u) => (
+
+            <tbody className="divide-y divide-gray-200">
+              {filtrados.map(u => (
                 <tr
                   key={u.id}
-                  className="border-b border-gray-200 bg-white text-gray-500 cursor-pointer"
+                  className="even:bg-gray-50 hover:bg-sky-50 transition-colors"
                 >
-                  <td className="p-1.5 text-center">Sin foto</td>
-                  <td className="p-1.5 text-center">{u.name}</td>
-                  <td className="p-1.5 text-center">{u.email}</td>
-                  <td className="p-1.5 text-center">
-                    {u.role.toLowerCase() === "admin" ? (
-                      <span className="bg-green-200 p-1 rounded-lg font-bold text-green-500 uppercase text-sm">
-                        {u.role}
-                      </span>
-                    ) : (
-                      <span className="bg-yellow-200 p-1 rounded-lg font-bold text-yellow-500 uppercase text-sm">
-                        {u.role}
-                      </span>
-                    )}
+                  {/* Foto */}
+                  <td className="px-4 py-2">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500">
+                        {u.name?.charAt(0).toUpperCase()}
+                      </div>
+                    </div>
                   </td>
-                  <td className="p-1.5 text-center">{u.numberphone}</td>
-                  <td className="p-1.5 text-center">
-                    {u.isactivate ? (
-                      <span onClick={() => buttonHandleUserActivate(u.id)} className="bg-green-200 p-1 rounded-lg font-bold text-green-500">
-                        Activo
-                      </span>
-                    ) : (
-                      <span onClick={() => buttonHandleUserActivate(u.id)} className="bg-red-200 p-1 rounded-lg font-bold text-red-500">
-                        No activo
-                      </span>
-                    )}
+
+                  {/* Usuario */}
+                  <td className="px-4 py-2 font-semibold text-gray-800">
+                    {u.name}
                   </td>
-                  <td className="p-1.5 text-center flex justify-center gap-2 text-white">
-                    <button onClick={()=>editUser(u.id)} className="bg-sky-500 p-1 rounded-lg hover:scale-105 transition-all duration-500 cursor-pointer">
-                      <PencilIcon className="h-5 w-5" />
-                    </button>
-                    <button onClick={() => { deleteUser(u.id) }} className="bg-red-500 p-1 rounded-lg hover:scale-105 transition-all duration-200 cursor-pointer">
-                      <TrashIcon className="h-5 w-5" />
-                    </button>
+
+                  {/* Email */}
+                  <td className="px-4 py-2 text-gray-600">
+                    {u.email}
+                  </td>
+
+                  {/* Rol */}
+                  <td className="px-4 py-2 text-center">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold uppercase
+              ${u.role.toLowerCase() === "admin"
+                          ? "bg-green-100 text-green-600"
+                          : "bg-yellow-100 text-yellow-600"
+                        }`}
+                    >
+                      {u.role}
+                    </span>
+                  </td>
+
+                  {/* Contacto */}
+                  <td className="px-4 py-2 text-center text-gray-700">
+                    {u.numberphone || "—"}
+                  </td>
+
+                  {/* Estado */}
+                  <td className="px-4 py-2 text-center">
+                    <span
+                      onClick={() => buttonHandleUserActivate(u.id)}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold cursor-pointer
+              ${u.isactivate
+                          ? "bg-green-100 text-green-600 hover:bg-green-200"
+                          : "bg-red-100 text-red-600 hover:bg-red-200"
+                        }`}
+                    >
+                      {u.isactivate ? "Activo" : "Inactivo"}
+                    </span>
+                  </td>
+
+                  {/* Acciones */}
+                  <td className="px-4 py-2">
+                    <div className="flex justify-center gap-2">
+                      <button
+                        onClick={() => editUser(u.id)}
+                        className="p-2 rounded-lg bg-sky-500 text-white hover:bg-sky-600 transition"
+                      >
+                        <PencilIcon className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => deleteUser(u.id)}
+                        className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          </div>
-        )}
-      
+        </div>
+      )}
+
     </div>
   );
 }
